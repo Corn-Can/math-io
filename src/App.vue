@@ -3,11 +3,6 @@ import { RouterView } from 'vue-router';
 import MusicController from '@/components/MusicController.vue';
 import { playSound } from '@/utils/audio';
 
-const handleGlobalClick = () => {
-  // Simple global feedback for interaction
-  // We can filter by tag if needed to avoid spam
-  // playSound('common', 'click', 0.2); // Too noisy? Maybe only on buttons
-};
 
 // Global button click listener
 window.addEventListener('click', (e) => {

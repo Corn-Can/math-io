@@ -241,7 +241,7 @@ const highlightError = (cell: SudokuCell) => {
     }, 800);
 };
 
-const findNearestCell = (currentX: number, currentY: number, val: number) => {
+const findNearestCell = (currentX: number, currentY: number, val: number): { x: number, y: number, dist: number } | null => {
     if (!engine.value) return null;
     
     let nearest: { x: number, y: number, dist: number } | null = null;
@@ -290,9 +290,9 @@ const onKeyDown = (e: KeyboardEvent) => {
         // Note: selectCell sets activeNumber if cell has value.
         // We might want to preserve activeNumber if moving to empty cell?
         // Let's rely on selectCell.
-        const target = engine.value!.grid[y][x];
+        const target = engine.value!.grid[y]?.[x];
         selectedCell.value = { x, y };
-        if(target.value) activeNumber.value = target.value; 
+        if(target?.value) activeNumber.value = target.value; 
         playSound('common', 'select', 0.1);
     }
 };
@@ -359,7 +359,15 @@ const onErrorReceived = ({ x, y }: { x: number, y: number }) => {
             // Show Error Visual
             cell.isError = true;
             triggerRef(engine);
-            setTimeout(() => { if (engine.value) { engine.value.grid[y][x].isError = false; triggerRef(engine); } }, 800);
+            setTimeout(() => { 
+                if (engine.value) { 
+                    const c = engine.value.grid[y]?.[x];
+                    if (c) {
+                        c.isError = false; 
+                        triggerRef(engine); 
+                    }
+                } 
+            }, 800);
         }
     }
 };
@@ -368,7 +376,7 @@ const onErrorReceived = ({ x, y }: { x: number, y: number }) => {
 // Rush Mode: Score comes from players list (Server Authority)
 watch(() => props.players, (newPlayers) => {
     if (props.mode === 'rush' && newPlayers && props.socket) {
-        const me = newPlayers.find(p => p.id === props.socket.id);
+        const me = newPlayers.find(p => p.id === props.socket?.id);
         if (me) {
             score.value = me.score || 0;
         }
@@ -404,8 +412,9 @@ const getCellClass = (cell: SudokuCell) => {
     
     // Safety for selectedVal access
     let selectedVal = null;
-    if (selectedCell.value && engine.value.grid[selectedCell.value.y]?.[selectedCell.value.x]) {
-        selectedVal = engine.value.grid[selectedCell.value.y][selectedCell.value.x].value;
+    const sCell = selectedCell.value ? engine.value.grid[selectedCell.value.y]?.[selectedCell.value.x] : null;
+    if (sCell) {
+        selectedVal = sCell.value;
     }
     
     const isSelected = selectedCell.value?.x === cell.x && selectedCell.value?.y === cell.y;

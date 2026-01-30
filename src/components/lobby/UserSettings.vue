@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useSettingsStore } from '@/store/settings';
-import { tracker } from '@/utils/i18n-tracker';
 import { usePremium } from '@/composables/usePremium';
 import { setBgmVolume, setSfxVolume } from '@/utils/audio';
 

@@ -13,15 +13,6 @@ const { t } = useT();
 
 const activeTab = ref<'overview' | 'rules' | 'modes'>('overview');
 
-// Helper to try translating dynamic content, fallback to registry text
-const tryTranslate = (path: string, fallback: string) => {
-    // If the valid key is provided, we would use t(key, fallback)
-    // But here we construct the key dynamically based on game ID
-    if (!props.game) return fallback;
-    // Example Key: game.fruitbox.help.overview.content
-    const key = `game.${props.game.id}.help.${path}`;
-    return t(key, fallback);
-};
 </script>
 
 <template>

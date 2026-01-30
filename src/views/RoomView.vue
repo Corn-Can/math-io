@@ -56,7 +56,7 @@ const handleRedeem = () => {
 
 // socket 連線位址
 const SOCKET_URL = import.meta.env.PROD
-  ? 'https://your-backend-url.onrender.com'
+  ? 'https://math-io-server.onrender.com'
   : 'http://localhost:3000';
 
 // 連線相關

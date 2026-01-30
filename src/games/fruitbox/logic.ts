@@ -77,8 +77,8 @@ export class FruitBoxEngine {
         // Mark cells as cleared
         cells.forEach(cell => {
             // Find the actual cell instance in our grid
-            const actualCell = this.state.grid[cell.y][cell.x];
-            if (actualCell.status === 'normal') {
+            const actualCell = this.state.grid[cell.y]?.[cell.x];
+            if (actualCell && actualCell.status === 'normal') {
                 actualCell.status = 'cleared';
                 score += 10; // 10 points per block
             }
@@ -96,8 +96,8 @@ export class FruitBoxEngine {
                 ];
                 neighbors.forEach(n => {
                     if (n.x >= 0 && n.x < this.cols && n.y >= 0 && n.y < this.rows) {
-                        const neighbor = this.state.grid[n.y][n.x];
-                        if (neighbor.status === 'petrified') {
+                        const neighbor = this.state.grid[n.y]?.[n.x];
+                        if (neighbor?.status === 'petrified') {
                             neighbor.status = 'normal';
                         }
                     }
@@ -137,7 +137,9 @@ export class FruitBoxEngine {
 
         if (normalCells.length > 0) {
             const idx = Math.floor(Math.random() * normalCells.length);
-            normalCells[idx].status = 'petrified';
+            if (normalCells[idx]) {
+                normalCells[idx].status = 'petrified';
+            }
         }
     }
 
@@ -145,8 +147,8 @@ export class FruitBoxEngine {
         const updates: { id: string, value: number }[] = [];
         for (let y = 0; y < this.rows; y++) {
             for (let x = 0; x < this.cols; x++) {
-                const cell = this.state.grid[y][x];
-                if (cell.status === 'cleared' || cell.status === 'opponent-cleared') {
+                const cell = this.state.grid[y]?.[x];
+                if (cell && (cell.status === 'cleared' || cell.status === 'opponent-cleared')) {
                     // Regenerate
                     cell.value = Math.floor(this.random() * 9) + 1;
                     cell.status = 'normal';

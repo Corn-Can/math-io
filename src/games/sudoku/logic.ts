@@ -47,9 +47,10 @@ export class SudokuEngine {
         // Deep copy solution to grid
         for (let y = 0; y < this.size; y++) {
             for (let x = 0; x < this.size; x++) {
-                this.grid[y][x] = {
+                if (!this.grid[y]) this.grid[y] = [];
+                this.grid[y]![x] = {
                     x, y,
-                    value: this.solution[y][x],
+                    value: this.solution[y]?.[x] ?? null,
                     isLocked: true,
                     notes: new Set()
                 };
@@ -62,16 +63,7 @@ export class SudokuEngine {
         if (difficulty === 'medium') removeRatio = 0.55;
         if (difficulty === 'hard') removeRatio = 0.65;
 
-        // Cap removals for extreme sizes?
-        // 16x16: 256 cells. Hard (0.7) = 179 removed -> 77 clues.
-
         const cellsToRemove = Math.floor(totalCells * removeRatio);
-        let removed = 0;
-
-        // Naive removal (random)
-        // Ideally we check for unique solution, but for a game engine, uniqueness is strictly better but not critical if we just want a valid puzzle. 
-        // We guarantee logic validity because we started from a valid solution.
-        // We will just shuffle coordinates and remove N.
 
         const coords = [];
         for (let y = 0; y < this.size; y++) {
@@ -81,13 +73,20 @@ export class SudokuEngine {
         // Shuffle
         for (let i = coords.length - 1; i > 0; i--) {
             const j = Math.floor(this.random() * (i + 1));
-            [coords[i], coords[j]] = [coords[j], coords[i]];
+            const temp: { x: number, y: number } | undefined = coords[i];
+            coords[i] = coords[j]!;
+            coords[j] = temp!;
         }
 
         for (let i = 0; i < cellsToRemove; i++) {
-            const { x, y } = coords[i];
-            this.grid[y][x].value = null;
-            this.grid[y][x].isLocked = false;
+            const coord = coords[i];
+            if (!coord) continue;
+            const { x, y } = coord;
+            const cell = this.grid[y]?.[x];
+            if (cell) {
+                cell.value = null;
+                cell.isLocked = false;
+            }
         }
     }
 
@@ -140,7 +139,7 @@ export class SudokuEngine {
 
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
-                if (grid[i][j] === 0) {
+                if (grid[i]?.[j] === 0) {
                     row = i;
                     col = j;
                     isEmpty = true;
@@ -157,14 +156,18 @@ export class SudokuEngine {
         // Shuffle nums for randomness
         for (let i = nums.length - 1; i > 0; i--) {
             const j = Math.floor(this.random() * (i + 1));
-            [nums[i], nums[j]] = [nums[j], nums[i]];
+            const temp = nums[i];
+            nums[i] = nums[j]!;
+            nums[j] = temp!;
         }
 
         for (const num of nums) {
             if (this.isSafe(grid, row, col, num)) {
-                grid[row][col] = num;
-                if (this.solveRecursive(grid)) return true;
-                grid[row][col] = 0; // Backtrack
+                if (grid[row]) {
+                    grid[row]![col] = num;
+                    if (this.solveRecursive(grid)) return true;
+                    grid[row]![col] = 0; // Backtrack
+                }
             }
         }
         return false;
@@ -172,10 +175,10 @@ export class SudokuEngine {
 
     private isSafe(grid: number[][], row: number, col: number, num: number): boolean {
         // Check Row
-        for (let x = 0; x < this.size; x++) if (grid[row][x] === num) return false;
+        for (let x = 0; x < this.size; x++) if (grid[row]?.[x] === num) return false;
 
         // Check Col
-        for (let y = 0; y < this.size; y++) if (grid[y][col] === num) return false;
+        for (let y = 0; y < this.size; y++) if (grid[y]?.[col] === num) return false;
 
         // Check Box
         // Box start coords
@@ -184,7 +187,7 @@ export class SudokuEngine {
 
         for (let i = 0; i < this.boxH; i++) {
             for (let j = 0; j < this.boxW; j++) {
-                if (grid[i + startRow][j + startCol] === num) return false;
+                if (grid[i + startRow]?.[j + startCol] === num) return false;
             }
         }
 
@@ -202,6 +205,6 @@ export class SudokuEngine {
 
         if (this.solution.length === 0) return false; // Not generated
         // Compare with solution
-        return this.solution[y][x] === value;
+        return this.solution[y]?.[x] === value;
     }
 }

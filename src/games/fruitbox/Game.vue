@@ -68,6 +68,7 @@ const handleOccupyUpdate = ({ clearedIds, occupierId, refillData }: { clearedIds
         refillData.forEach(item => {
             // Find cell
             const [x, y] = item.id.split('-').map(Number);
+            if (x === undefined || y === undefined) return;
             const cell = engine.state.grid[y]?.[x];
             if (cell) {
                 cell.value = item.value;
@@ -117,6 +118,7 @@ const currentSum = computed(() => {
   let sum = 0;
   selectedCellIds.value.forEach(id => {
     const [x, y] = id.split('-').map(Number);
+    if (x === undefined || y === undefined) return;
     const cell = engine.state.grid[y]?.[x];
     if (cell && cell.status === 'normal') { // Only sum normal cells
         sum += cell.value;
