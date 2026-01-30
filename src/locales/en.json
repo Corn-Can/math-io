@@ -1,0 +1,161 @@
+{
+    "system": {
+        "loading": "Loading...",
+        "confirm": "Confirm",
+        "cancel": "Cancel"
+    },
+    "home": {
+        "subtitle": "Minimal Math Battle Platform",
+        "tagline": "Real-time Competition",
+        "playNow": "PLAY NOW ↗",
+        "footer": "Math.io • Designed for Focus"
+    },
+    "lobby": {
+        "backToHome": "BACK TO HOME",
+        "lobbyTag": "Lobby",
+        "liveTag": "Live",
+        "enterId": "ENTER ID",
+        "go": "GO",
+        "createRoom": "CREATE ROOM",
+        "noRooms": "No Public Rooms Yet",
+        "beFirst": "Be the first one to start a battle!",
+        "players": "PLAYERS",
+        "mode": "Mode",
+        "full": "FULL",
+        "join": "JOIN",
+        "setupSettings": "Setup your game settings",
+        "roomName": "Name",
+        "gameMode": "Game Mode",
+        "maxPlayers": "Players",
+        "privacy": "Privacy",
+        "public": "Public",
+        "private": "Private",
+        "startBattle": "START BATTLE",
+        "roomList": "Room List",
+        "joinBattle": "Join a battle or create your own.",
+        "createOne": "Create one?"
+    },
+    "room": {
+        "invalidRoom": "Invalid Room",
+        "exit": "EXIT",
+        "guide": "Game Guide",
+        "leaderboard": "Leaderboard",
+        "waitingRoom": "WAITING ROOM",
+        "hostWait": "You are the host. Waiting for players...",
+        "playerWait": "Please get ready and wait for host.",
+        "tab": {
+            "players": "PLAYERS",
+            "rules": "GAME RULE"
+        },
+        "waitHostReset": "Please wait for the host to reset the room.",
+        "ready": "READY!",
+        "clickToReady": "CLICK TO READY",
+        "waitingForPlayers": "WAITING FOR PLAYERS",
+        "startGame": "START GAME",
+        "waitingForReady": "WAITING FOR READY",
+        "getReady": "Get Ready",
+        "victory": "VICTORY",
+        "defeat": "DEFEAT",
+        "draw": "DRAW",
+        "newRecord": "New Record!",
+        "goodEffort": "Good Effort",
+        "rank": "Rank",
+        "score": "Score",
+        "playAgain": "Play Again",
+        "status": {
+            "waiting": "Waiting",
+            "playing": "Playing",
+            "countdown": "Countdown",
+            "result": "Result"
+        },
+        "help": "Help",
+        "start": "START GAME",
+        "waitingForHost": "WAITING FOR HOST...",
+        "backToLobby": "BACK TO LOBBY",
+        "waitingReturn": "WAITING FOR HOST TO RETURN...",
+        "vipSuccess": "VIP enabled! Ads removed!",
+        "invalidCode": "Invalid code"
+    },
+    "help": {
+        "guide": "Game Guide",
+        "tab": {
+            "overview": "Overview",
+            "rules": "Rules",
+            "modes": "Modes"
+        },
+        "controls": "CONTROLS",
+        "close": "Close"
+    },
+    "game": {
+        "fruitbox": {
+            "nameKey": "FruitBox",
+            "descriptionKey": "Classic Math Battle Game",
+            "help": {
+                "overview": {
+                    "content": "In this fast-paced math battle, drag to select numbers that sum to 10. Speed and calculation decide the winner! Try different modes for varied strategies"
+                },
+                "rules": {
+                    "0": {
+                        "title": "Basic Rules",
+                        "content": "1. Drag left mouse button to select blocks\n2. If selected sum equals 10, it will be clear!\n3. Each cleared block is worth 10 points"
+                    },
+                    "1": {
+                        "title": "Special Modes",
+                        "content": "Other modes like Territory, Attack, or Occupy have unique mechanics. See Modes tab"
+                    }
+                },
+                "controls": "Drag: Left Mouse / Touch Swipe"
+            },
+            "mode": {
+                "classic": {
+                    "label": "Classic",
+                    "desc": "Standard clearing battle"
+                },
+                "territory": {
+                    "label": "Territory",
+                    "desc": "Shared board. Use opponents' moves against them"
+                },
+                "attack": {
+                    "label": "Attack",
+                    "desc": "Clear 3+ blocks to petrify opponents, Need to clear neighbors to remove petrification"
+                },
+                "occupy": {
+                    "label": "Occupy",
+                    "desc": "Shared regenerating board. Most occupied cells wins"
+                }
+            }
+        },
+        "sudoku": {
+            "nameKey": "Sudoku",
+            "descriptionKey": "Classic Logic Puzzle",
+            "mode": {
+                "classic": {
+                    "label": "Classic Battle",
+                    "desc": "Solve independently. Speed and accuracy matter"
+                },
+                "rush": {
+                    "label": "Rush Mode",
+                    "desc": "Shared board. Fill cells first to score points"
+                }
+            },
+            "help": {
+                "overview": "Fill the grid so that every row, column and box contains unique numbers",
+                "rules": {
+                    "0": {
+                        "title": "Basic Rules",
+                        "content": "Fill the grid by clicking empty cell and select number"
+                    },
+                    "1": {
+                        "title": "Other",
+                        "content": "This game can set other sizes. Like 4x4、9x9、16x16 or 6x6"
+                    },
+                    "2": {
+                        "title": "Keyboard",
+                        "content": "You can use number keys 1 - 9 and A - F (only for 16x16 mode) to fill in"
+                    }
+                },
+                "controls": "Mouse Click / Keyboard Numbers / Arrows"
+            }
+        }
+    }
+}

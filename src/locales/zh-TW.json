@@ -1,0 +1,161 @@
+{
+    "system": {
+        "loading": "載入中...",
+        "confirm": "確認",
+        "cancel": "取消"
+    },
+    "home": {
+        "subtitle": "極簡數學對戰平台",
+        "tagline": "即時連線競技",
+        "playNow": "立即遊玩 ↗",
+        "footer": "Math.io • 專注於數學競技"
+    },
+    "lobby": {
+        "backToHome": "回首頁",
+        "lobbyTag": "大廳",
+        "liveTag": "即時",
+        "enterId": "輸入房號",
+        "go": "前往",
+        "createRoom": "建立房間",
+        "noRooms": "目前沒有公開房間",
+        "beFirst": "成為第一個發起對戰的人！",
+        "players": "位玩家",
+        "mode": "模式",
+        "full": "滿員",
+        "join": "加入",
+        "setupSettings": "設定遊戲選項",
+        "roomName": "房間名稱",
+        "gameMode": "遊戲模式",
+        "maxPlayers": "最大玩家數",
+        "privacy": "隱私設定",
+        "public": "公開",
+        "private": "私人",
+        "startBattle": "開始對戰",
+        "roomList": "房間列表",
+        "joinBattle": "加入對戰或是建立你自己的房間",
+        "createOne": "建立一個？"
+    },
+    "room": {
+        "invalidRoom": "無效的房間",
+        "exit": "離開",
+        "guide": "遊戲指南",
+        "leaderboard": "排行榜",
+        "waitingRoom": "等候室",
+        "hostWait": "你是房主，請等待玩家準備",
+        "playerWait": "請準備並等待房主開始",
+        "tab": {
+            "players": "玩家列表",
+            "rules": "遊戲規則"
+        },
+        "waitHostReset": "請等待房主重置房間",
+        "ready": "已準備!",
+        "clickToReady": "點擊準備",
+        "waitingForPlayers": "等待玩家加入...",
+        "startGame": "開始遊戲",
+        "waitingForReady": "等待全員準備...",
+        "getReady": "準備開始",
+        "victory": "勝利",
+        "defeat": "失敗",
+        "draw": "平手",
+        "newRecord": "新紀錄！",
+        "goodEffort": "再接再厲",
+        "rank": "排名",
+        "score": "分數",
+        "playAgain": "再玩一次",
+        "status": {
+            "waiting": "等待中",
+            "playing": "遊戲中",
+            "countdown": "準備中",
+            "result": "結算中"
+        },
+        "help": "幫助",
+        "start": "開始遊戲",
+        "waitingForHost": "等待房主...",
+        "backToLobby": "返回大廳",
+        "waitingReturn": "等待房主返回...",
+        "vipSuccess": "VIP 啟用成功！廣告已移除！",
+        "invalidCode": "無效的代碼"
+    },
+    "help": {
+        "guide": "遊戲說明",
+        "tab": {
+            "overview": "總覽",
+            "rules": "規則",
+            "modes": "模式"
+        },
+        "controls": "操作方式",
+        "close": "關閉"
+    },
+    "game": {
+        "fruitbox": {
+            "nameKey": "湊十",
+            "descriptionKey": "經典數學對戰遊戲",
+            "help": {
+                "overview": {
+                    "content": "在這個快節奏的數學對戰遊戲中，你需要框選數字使其總和為 10 \n你的手速與計算能力將決定勝負！遊玩不同模式以體驗更多變的策略"
+                },
+                "rules": {
+                    "0": {
+                        "title": "基本規則",
+                        "content": "1. 按住滑鼠左鍵並拖曳來框選方塊\n2. 如果框選範圍內的數字總和等於 10 將成功消除\n3. 消除方塊固定每一格皆為 10 分"
+                    },
+                    "1": {
+                        "title": "特殊模式",
+                        "content": "本遊戲能設定其他模式，如佔地為王、攻擊模式或佔領模式等其他機制，詳見下一頁"
+                    }
+                },
+                "controls": "拖曳：滑鼠左鍵 / 觸控滑動"
+            },
+            "mode": {
+                "classic": {
+                    "label": "經典對戰",
+                    "desc": "各自消除的經典模式"
+                },
+                "territory": {
+                    "label": "佔地為王",
+                    "desc": "共用面板的模式，小心對手消除版面"
+                },
+                "attack": {
+                    "label": "攻擊模式",
+                    "desc": "以 3 格以上消除可以給予對手石化干擾，需要消除相鄰的方塊解除石化"
+                },
+                "occupy": {
+                    "label": "佔領模式",
+                    "desc": "共用再生面板，結算時以佔領格數決定勝負"
+                }
+            }
+        },
+        "sudoku": {
+            "nameKey": "數獨",
+            "descriptionKey": "經典數字邏輯拼圖",
+            "mode": {
+                "classic": {
+                    "label": "經典對戰",
+                    "desc": "每人獨立解題，以速度與準確度決定勝負"
+                },
+                "rush": {
+                    "label": "搶先作答",
+                    "desc": "共用題庫，填入正確答案搶分，愈早填入分數愈高"
+                }
+            },
+            "help": {
+                "overview": "在網格中填入數字，使得每行、每列和每個宮格內的數字不重複",
+                "rules": {
+                    "0": {
+                        "title": "基本規則",
+                        "content": "點擊格子並選擇數字可以填入"
+                    },
+                    "1": {
+                        "title": "其它",
+                        "content": "本遊戲能設定其它大小。如 4x4、9x9、16x16 以及 6x6"
+                    },
+                    "2": {
+                        "title": "快捷鍵",
+                        "content": "可使用數字鍵 1 - 9和 A - F （限 16 格模式）填入"
+                    }
+                },
+                "controls": "滑鼠點擊 / 鍵盤數字鍵 / 方向鍵移動"
+            }
+        }
+    }
+}
