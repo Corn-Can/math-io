@@ -32,7 +32,7 @@ onMounted(() => {
 
     <ins class="adsbygoogle z-10"
          style="display:block"
-         :data-ad-client="'ca-pub-XXXXXXXXXXXXXXXX'" 
+         :data-ad-client="'ca-pub-7220627835291556'" 
          :data-ad-slot="slotId"
          :data-ad-format="format || 'auto'"
          :data-full-width-responsive="fullWidth ? 'true' : 'false'">

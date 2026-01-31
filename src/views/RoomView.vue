@@ -548,7 +548,7 @@ const restartGame = () => {
       <div class="p-6 border-b border-stone-200">
         <div class="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">SPONSORED</div>
 
-        <GoogleAd slotId='pub-7220627835291556' format="rectangle" />
+        <GoogleAd slotId='ca-pub-7220627835291556' format="rectangle" />
 
         <div v-if="!isPremium" class="mt-4">
             <div v-if="!showRedeem" class="text-center">
