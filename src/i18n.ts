@@ -4,6 +4,8 @@ import type { I18n } from 'vue-i18n';
 import en from './locales/en.json';
 import zhTW from './locales/zh-TW.json';
 
+import zhCN from './locales/zh.json';
+
 const i18n: I18n = createI18n({
     legacy: false, // Use Composition API
     locale: 'en', // Set default locale to English as requested
@@ -11,7 +13,8 @@ const i18n: I18n = createI18n({
     globalInjection: true,
     messages: {
         'en': en,
-        'zh-TW': zhTW
+        'zh-TW': zhTW,
+        'zh-CN': zhCN
     },
 });
 

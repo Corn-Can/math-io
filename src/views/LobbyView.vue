@@ -80,8 +80,23 @@ const createRoom = () => {
   if (!form.value.name) form.value.name = `${t(gameName)} Room`;
   //紀錄名字
   localStorage.setItem('math_io_username', form.value.name);
-  // 發送給後端 (後端記得要儲存 mode)
-  socket.value?.emit('create-room', form.value);
+  
+  // Calculate Defaults
+  let defaultDuration = 120;
+  const defaultOptions: any = {};
+  if (currentGame?.configSchema) {
+      Object.entries(currentGame.configSchema).forEach(([key, schema]) => {
+          if (key === 'duration') defaultDuration = schema.default;
+          else defaultOptions[key] = schema.default;
+      });
+  }
+
+  // 發送給後端 (Include Defaults)
+  socket.value?.emit('create-room', {
+      ...form.value,
+      duration: defaultDuration,
+      options: defaultOptions
+  });
 };
 
 const joinRoom = (roomId: string, roomMode?: string) => {

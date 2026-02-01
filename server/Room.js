@@ -7,7 +7,7 @@ const GAMES = {
 };
 
 export default class Room {
-    constructor(id, name, isPrivate, maxPlayers, gameId, mode, io) {
+    constructor(id, name, isPrivate, maxPlayers, gameId, mode, io, duration, options) {
         this.id = id;
         this.name = name;
         this.isPrivate = isPrivate;
@@ -18,8 +18,11 @@ export default class Room {
 
         this.players = [];
         this.status = 'waiting'; // waiting, countdown, playing
-        this.duration = 300;
-        this.options = {}; // Generic options
+
+        // Use provided defaults or fallback
+        this.duration = duration !== undefined ? duration : 300;
+        this.options = options || {}; // Generic options
+
         this.hostId = null;
         this.startTime = null; // Track when game started
 

@@ -54,6 +54,7 @@
         "startGame": "START GAME",
         "waitingForReady": "WAITING FOR READY",
         "getReady": "Get Ready",
+        "gameInProgress": "Game In Progress...",
         "victory": "VICTORY",
         "defeat": "DEFEAT",
         "draw": "DRAW",

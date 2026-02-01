@@ -1,0 +1,162 @@
+{
+    "system": {
+        "loading": "加载中...",
+        "confirm": "确认",
+        "cancel": "取消"
+    },
+    "home": {
+        "subtitle": "极简数学对战平台",
+        "tagline": "即时连线竞技",
+        "playNow": "立即游玩 ↗",
+        "footer": "Math.io • 专注于数学竞技"
+    },
+    "lobby": {
+        "backToHome": "返回首页",
+        "lobbyTag": "大厅",
+        "liveTag": "即时",
+        "enterId": "输入房号",
+        "go": "前往",
+        "createRoom": "创建房间",
+        "noRooms": "目前没有公开房间",
+        "beFirst": "成为第一个发起对战的人！",
+        "players": "位玩家",
+        "mode": "模式",
+        "full": "满员",
+        "join": "加入",
+        "setupSettings": "设置游戏选项",
+        "roomName": "房间名称",
+        "gameMode": "游戏模式",
+        "maxPlayers": "最大玩家数",
+        "privacy": "隐私设置",
+        "public": "公开",
+        "private": "私人",
+        "startBattle": "开始对战",
+        "roomList": "房间列表",
+        "joinBattle": "加入对战或是创建你自己的房间",
+        "createOne": "创建一个？"
+    },
+    "room": {
+        "invalidRoom": "无效的房间",
+        "exit": "离开",
+        "guide": "游戏指南",
+        "leaderboard": "排行榜",
+        "waitingRoom": "等候室",
+        "hostWait": "你是房主，请等待玩家准备",
+        "playerWait": "请准备并等待房主开始",
+        "tab": {
+            "players": "玩家列表",
+            "rules": "游戏规则"
+        },
+        "waitHostReset": "请等待房主重置房间",
+        "ready": "已准备!",
+        "clickToReady": "点击准备",
+        "waitingForPlayers": "等待玩家加入...",
+        "startGame": "开始游戏",
+        "waitingForReady": "等待全员准备...",
+        "getReady": "准备开始",
+        "gameInProgress": "游戏进行中...",
+        "victory": "胜利",
+        "defeat": "失败",
+        "draw": "平局",
+        "newRecord": "新纪录！",
+        "goodEffort": "再接再厉",
+        "rank": "排名",
+        "score": "分数",
+        "playAgain": "再玩一次",
+        "status": {
+            "waiting": "等待中",
+            "playing": "游戏中",
+            "countdown": "准备中",
+            "result": "结算中"
+        },
+        "help": "帮助",
+        "start": "开始游戏",
+        "waitingForHost": "等待房主...",
+        "backToLobby": "返回大厅",
+        "waitingReturn": "等待房主返回...",
+        "vipSuccess": "VIP 启用成功！广告已移除！",
+        "invalidCode": "无效的代码"
+    },
+    "help": {
+        "guide": "游戏说明",
+        "tab": {
+            "overview": "总览",
+            "rules": "规则",
+            "modes": "模式"
+        },
+        "controls": "操作方式",
+        "close": "关闭"
+    },
+    "game": {
+        "fruitbox": {
+            "nameKey": "凑十",
+            "descriptionKey": "经典数学对战游戏",
+            "help": {
+                "overview": {
+                    "content": "在这个快节奏的数学对战游戏中，你需要框选数字使其总和为 10 \n你的手速与计算能力将决定胜负！游玩不同模式以体验更多变的策略"
+                },
+                "rules": {
+                    "0": {
+                        "title": "基本规则",
+                        "content": "1. 按住鼠标左键并拖拽来框选方块\n2. 如果框选范围内的数字总和等于 10 将成功消除\n3. 消除方块固定每一格皆为 10 分"
+                    },
+                    "1": {
+                        "title": "特殊模式",
+                        "content": "本游戏能设置其他模式，如占地为王、攻击模式或占领模式等其他机制，详见下一页"
+                    }
+                },
+                "controls": "拖拽：鼠标左键 / 触控滑动"
+            },
+            "mode": {
+                "classic": {
+                    "label": "经典对战",
+                    "desc": "各自消除的经典模式"
+                },
+                "territory": {
+                    "label": "占地为王",
+                    "desc": "共用面板的模式，小心对手消除版面"
+                },
+                "attack": {
+                    "label": "攻击模式",
+                    "desc": "以 3 格以上消除可以给予对手石化干扰，需要消除相邻的方块解除石化"
+                },
+                "occupy": {
+                    "label": "占领模式",
+                    "desc": "共用再生面板，结算时以占领格数决定胜负"
+                }
+            }
+        },
+        "sudoku": {
+            "nameKey": "数独",
+            "descriptionKey": "经典数字逻辑拼图",
+            "mode": {
+                "classic": {
+                    "label": "经典对战",
+                    "desc": "每人独立解题，以速度与准确度决定胜负"
+                },
+                "rush": {
+                    "label": "抢先作答",
+                    "desc": "共用题库，填入正确答案抢分，愈早填入分数愈高"
+                }
+            },
+            "help": {
+                "overview": "在网格中填入数字，使得每行、每列和每个宫格内的数字不重复",
+                "rules": {
+                    "0": {
+                        "title": "基本规则",
+                        "content": "点击格子并选择数字可以填入"
+                    },
+                    "1": {
+                        "title": "其它",
+                        "content": "本游戏能设置其它大小。如 4x4、9x9、16x16 以及 6x6"
+                    },
+                    "2": {
+                        "title": "快捷键",
+                        "content": "可使用数字键 1 - 9和 A - F （限 16 格模式）填入"
+                    }
+                },
+                "controls": "鼠标点击 / 键盘数字键 / 方向键移动"
+            }
+        }
+    }
+}

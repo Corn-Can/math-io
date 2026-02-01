@@ -54,6 +54,7 @@
         "startGame": "開始遊戲",
         "waitingForReady": "等待全員準備...",
         "getReady": "準備開始",
+        "gameInProgress": "遊戲進行中...",
         "victory": "勝利",
         "defeat": "失敗",
         "draw": "平手",

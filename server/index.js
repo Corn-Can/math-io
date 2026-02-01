@@ -51,10 +51,10 @@ io.on('connection', (socket) => {
     });
   });
 
-  // 建立房間
-  socket.on('create-room', ({ name, isPrivate, maxPlayers, gameId, mode }) => {
+  // 建立房間 (Deprecate: join-room handles creation now usually, but keeping for compatibility)
+  socket.on('create-room', ({ name, isPrivate, maxPlayers, gameId, mode, duration, options }) => {
     const roomId = generateRoomId();
-    const newRoom = new Room(roomId, name || `Room ${roomId}`, isPrivate, maxPlayers || 8, gameId || 'fruitbox', mode || 'classic', io);
+    const newRoom = new Room(roomId, name || `Room ${roomId}`, isPrivate, maxPlayers || 8, gameId || 'fruitbox', mode || 'classic', io, duration, options);
     rooms[roomId] = newRoom;
 
     socket.emit('room-created', roomId);
@@ -63,11 +63,15 @@ io.on('connection', (socket) => {
 
   // 加入房間
   socket.on('join-room', (data) => {
-    let roomId, playerName;
+    let roomId, playerName, gameId, mode, duration, options;
 
     if (typeof data === 'object') {
       roomId = data.roomId;
       playerName = data.name;
+      gameId = data.gameId;
+      mode = data.mode;
+      duration = data.duration;
+      options = data.options;
       console.log('玩家加入房間:', roomId, '玩家名稱:', playerName);
     }
     else {
@@ -77,10 +81,26 @@ io.on('connection', (socket) => {
 
     const room = rooms[roomId];
 
-    if (!room) { socket.emit('error', '房間不存在'); return; }
+    if (!room) {
+      // Auto-Create if joining non-existent room? 
+      // The previous code returned error: `if (!room) { socket.emit('error', '房間不存在'); return; }`
+      // But the user might expect auto-creation for specific URLs.
+      // Let's SUPPORT auto-creation if gameId is provided, otherwise Error.
+      if (gameId) {
+        console.log('Room not found, Auto-Creating:', roomId);
+        const newRoom = new Room(roomId, `Room ${roomId}`, false, 8, gameId || 'fruitbox', mode || 'classic', io, duration, options);
+        rooms[roomId] = newRoom;
+        // Continue to join...
+      } else {
+        socket.emit('error', '房間不存在'); return;
+      }
+    }
+
+    // Refresh ref in case we just created it
+    const targetRoom = rooms[roomId];
 
     // Check if room is full
-    if (room.players.length >= room.maxPlayers) { socket.emit('error', '房間已滿'); return; }
+    if (targetRoom.players.length >= targetRoom.maxPlayers) { socket.emit('error', '房間已滿'); return; }
 
     // Check if game has started - ALLOWED now (Late Join -> Wait in Lobby)
     // if (room.status !== 'waiting') { socket.emit('error', '遊戲已開始，無法加入'); return; }
@@ -100,8 +120,8 @@ io.on('connection', (socket) => {
     ];
 
     // Check existing players to pick unused color if possible, or cycle
-    const takenColors = new Set(room.players.map(p => p.color));
-    const availableColor = PLAY_COLORS.find(c => !takenColors.has(c)) || PLAY_COLORS[room.players.length % PLAY_COLORS.length];
+    const takenColors = new Set(targetRoom.players.map(p => p.color));
+    const availableColor = PLAY_COLORS.find(c => !takenColors.has(c)) || PLAY_COLORS[targetRoom.players.length % PLAY_COLORS.length];
 
     // 新增玩家物件
     const newPlayer = {
@@ -113,20 +133,20 @@ io.on('connection', (socket) => {
       isEliminated: false
     };
 
-    room.addPlayer(newPlayer);
+    targetRoom.addPlayer(newPlayer);
 
     // Sync full room state to the new player
     socket.emit('room-state', {
-      mode: room.mode,
-      hostId: room.hostId,
-      status: room.status,
-      duration: room.duration,
-      options: room.options,
-      startTime: room.startTime,
-      seed: room.seed
+      mode: targetRoom.mode,
+      hostId: targetRoom.hostId,
+      status: targetRoom.status,
+      duration: targetRoom.duration,
+      options: targetRoom.options,
+      startTime: targetRoom.startTime,
+      seed: targetRoom.seed
     });
 
-    io.to(roomId).emit('update-players', room.players);
+    io.to(roomId).emit('update-players', targetRoom.players);
     broadcastRoomList();
   });
 

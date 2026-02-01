@@ -38,10 +38,24 @@ if (!currentGame || !roomId) {
   router.replace('/');
 }
 
+// Load Defaults from Registry
+const defaultOptions: any = {};
+let defaultDuration = 120;
+
+if (currentGame?.configSchema) {
+    Object.entries(currentGame.configSchema).forEach(([key, schema]) => {
+        if (key === 'duration') {
+             defaultDuration = schema.default;
+        } else {
+             defaultOptions[key] = schema.default;
+        }
+    });
+}
+
 const roomState = ref<'LOBBY' | 'COUNTDOWN' | 'PLAYING' | 'RESULT'>('LOBBY');
 const currentMode = ref((route.query.mode as string) || currentGame?.modes[0]?.id || 'classic');
-const gameDuration = ref(60);
-const gameOptions = ref({});
+const gameDuration = ref(defaultDuration);
+const gameOptions = ref({ ...defaultOptions });
 const activeTab = ref<'players' | 'settings'>('players');
 
 //贊助
@@ -127,7 +141,14 @@ onMounted(() => {
   socket.value.on('connect', () => {
     isConnected.value = true;
     myId.value = socket.value?.id || '';
-    socket.value?.emit('join-room', {roomId, name: localStorage.getItem('math_io_username') || 'Player'});
+    socket.value?.emit('join-room', {
+        roomId, 
+        name: localStorage.getItem('math_io_username') || 'Player',
+        gameId,
+        mode: currentMode.value,
+        duration: defaultDuration,
+        options: defaultOptions
+    });
     // Start Sync
     socket.value?.emit('sync-time', Date.now());
   });
@@ -152,10 +173,12 @@ onMounted(() => {
   socket.value.on('room-state', (state: any) => {
     currentMode.value = state.mode;
     hostId.value = state.hostId;
-    gameDuration.value = state.duration !== undefined ? state.duration : 60;
-    // Merge options (ensure we trigger reactivity)
+    gameDuration.value = state.duration !== undefined ? state.duration : defaultDuration;
+    // Merge options with defaults to ensure safety
     if (state.options) {
-        gameOptions.value = { ...state.options };
+        gameOptions.value = { ...defaultOptions, ...state.options };
+    } else {
+        gameOptions.value = { ...defaultOptions };
     }
     serverStatus.value = state.status;
     
