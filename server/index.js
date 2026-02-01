@@ -40,6 +40,15 @@ io.on('connection', (socket) => {
         status: r.status
       }));
     socket.emit('room-list', publicRooms);
+    socket.emit('room-list', publicRooms);
+  });
+
+  // Time Sync
+  socket.on('sync-time', (clientSendTime) => {
+    socket.emit('sync-time-response', {
+      serverTime: Date.now(),
+      clientSendTime
+    });
   });
 
   // 建立房間
@@ -73,8 +82,8 @@ io.on('connection', (socket) => {
     // Check if room is full
     if (room.players.length >= room.maxPlayers) { socket.emit('error', '房間已滿'); return; }
 
-    // Check if game has started (Restrict join during countdown/playing)
-    if (room.status !== 'waiting') { socket.emit('error', '遊戲已開始，無法加入'); return; }
+    // Check if game has started - ALLOWED now (Late Join -> Wait in Lobby)
+    // if (room.status !== 'waiting') { socket.emit('error', '遊戲已開始，無法加入'); return; }
 
     socket.join(roomId);
 

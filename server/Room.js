@@ -87,5 +87,20 @@ export default class Room {
             options: this.options
         });
         this.io.to(this.id).emit('update-players', this.players);
+
+        // Server-side Game End Enforcement
+        if (this.duration > 0) {
+            // Buffer of 2 seconds to allow latencies before forceful end
+            setTimeout(() => {
+                if (this.status === 'playing' && this.startTime === seed) { // Check seed to ensure game hasn't restarted
+                    this.io.to(this.id).emit('game-over', { reason: 'time-up' });
+                    // We don't reset status here, we let the clients handle the game-over modal.
+                    // But strictly speaking, should we?
+                    // The client RoomView handles 'game-over' by showing modal.
+                    // The RoomView logic I added earlier AUTO-RESETS the room status if Host.
+                    // So this emit is sufficient to trigger the Host's auto-reset logic.
+                }
+            }, (this.duration + 2) * 1000);
+        }
     }
 }

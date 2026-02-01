@@ -11,9 +11,11 @@ const props = defineProps<{
   seed?: number;
   socket: Socket | null;
   players?: any[];
+  startTime?: number | null;
+  serverTimeOffset?: number;
 }>();
 
-const emit = defineEmits(['game-over', 'score-update']);
+const emit = defineEmits(['game-over', 'score-update', 'back-to-lobby', 'show-result']);
 const route = useRoute();
 
 // --- Game State ---
@@ -75,11 +77,23 @@ watch(GAME_DURATION, (newVal) => {
 
 const startTimer = () => {
     if (GAME_DURATION.value === 0) return; // Infinite
-    timeLeft.value = GAME_DURATION.value;
-    timerInterval = setInterval(() => {
-        if (timeLeft.value > 0) timeLeft.value--;
-        else endGame();
-    }, 1000);
+    
+    const updateTime = () => {
+        if (props.startTime) {
+             // Calculate CURRENT SERVER TIME = Local + Offset
+             const serverNow = Date.now() + (props.serverTimeOffset || 0);
+             const elapsedSeconds = (serverNow - props.startTime) / 1000;
+             timeLeft.value = Math.max(0, Math.floor(GAME_DURATION.value - elapsedSeconds));
+        } else {
+             // Fallback if no startTime passed
+             if (timeLeft.value > 0) timeLeft.value--;
+        }
+        
+        if (timeLeft.value <= 0) endGame();
+    };
+
+    updateTime(); // Initial update
+    timerInterval = setInterval(updateTime, 1000);
 };
 
 const endGame = () => {
@@ -206,6 +220,7 @@ const MISTAKE_LIMIT = computed(() => {
     // console.log('Mistake limit:', limit, props.options);
     return isNaN(limit) ? 3 : limit; 
 });
+const isSpectating = ref(false);
 
 const handleMistake = (cell: SudokuCell) => {
     highlightError(cell);
@@ -223,6 +238,9 @@ const handleMistake = (cell: SudokuCell) => {
         const roomId = route.query.room;
         console.log('[Game] Emitting player-eliminated for:', roomId);
         props.socket?.emit('player-eliminated', { roomId });
+        
+        // Trigger local result modal
+        emit('show-result', { score: score.value, result: 'LOSE' });
     }
 };
 
@@ -394,6 +412,7 @@ const updateProgress = () => {
             });
         });
         score.value = Math.floor((filled / total) * 100);
+        emit('score-update', score.value);
         
         // Classic End Game Check
         if (filled === total) {
@@ -523,14 +542,18 @@ const formatNum = (n: number) => {
     </div>
     
     <!-- Spectator Mode Indicator -->
-    <div v-if="isEliminated" class="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-        <div class="bg-stone-900/90 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-3 animate-pulse">
-            <span class="w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
-            <div class="flex flex-col leading-none">
-                <span class="font-black text-sm uppercase tracking-wider">ELIMINATED</span>
-                <span class="font-mono text-[10px] opacity-60">Spectator Mode Active</span>
-            </div>
+    <!-- Spectator Mode Indicator / Overlay -->
+    <!-- REMOVED per user request: Using standard GameResultModal instead -->
+    
+    <!-- Mini floating badge when spectating -->
+    <div v-if="isEliminated && isSpectating" class="absolute top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-col items-center gap-2">
+         <div class="bg-stone-900/90 text-white px-4 py-2 rounded-full shadow-xl flex items-center gap-2 animate-pulse cursor-default">
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+            <span class="font-black text-xs uppercase tracking-wider">SPECTATING</span>
         </div>
+        <button @click="emit('back-to-lobby')" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-[10px] font-bold shadow hover:bg-red-600 border border-red-700 active:scale-95 transition-transform">
+            EXIT TO LOBBY
+        </button>
     </div>
 
     <!-- Header Info -->
@@ -556,37 +579,40 @@ const formatNum = (n: number) => {
     </div>
 
     <!-- Board Container -->
-    <div class="flex-1 flex items-center justify-center w-full p-4 overflow-hidden">
+    <div class="flex-1 flex items-center justify-center w-full p-2 md:p-4 overflow-hidden relative">
         
         <!-- Sudoku Grid -->
         <div v-if="engine" 
-             class="sudoku-grid bg-white border-4 border-stone-800 rounded-xl shadow-2xl relative select-none"
+             class="sudoku-grid bg-white border-2 md:border-4 border-stone-800 rounded-xl shadow-2xl relative select-none touch-none max-w-full max-h-full"
              :style="{
                  gridTemplateColumns: `repeat(${size}, 1fr)`,
                  '--box-w': engine.boxW,
-                 '--size': size
+                 '--size': size,
+                 aspectRatio: '1/1',
+                 width: 'min(95vw, 65vh)' 
              }"
         >
             <div v-for="cell in flatGrid" :key="`${cell.x}-${cell.y}`"
-                 class="cell flex items-center justify-center font-mono cursor-pointer transition-colors duration-75 relative"
+                 class="cell flex items-center justify-center font-mono cursor-pointer transition-colors duration-75 relative aspect-square w-full"
                  :class="[
                      getCellClass(cell),
                      // Right Border (Skip last column)
                      cell.x < size - 1 
-                        ? ((cell.x + 1) % engine.boxW === 0 ? 'border-r border-stone-500' : 'border-r border-stone-200')
+                        ? ((cell.x + 1) % engine.boxW === 0 ? 'border-r-2 border-stone-500' : 'border-r border-stone-200')
                         : '',
                      
                      // Bottom Border (Skip last row)
                      cell.y < size - 1
-                        ? ((cell.y + 1) % engine.boxH === 0 ? 'border-b border-stone-500' : 'border-b border-stone-200')
+                        ? ((cell.y + 1) % engine.boxH === 0 ? 'border-b-2 border-stone-500' : 'border-b border-stone-200')
                         : '',
-                     // Font Size based on Board Size
-                     size >= 16 ? 'text-xs w-6 h-6 md:w-8 md:h-8' : 
-                     size >= 9 ? 'text-lg md:text-2xl w-8 h-8 md:w-12 md:h-12' : 
-                     'text-2xl md:text-3xl w-12 h-12 md:w-16 md:h-16'
+                     // Fluid Font Size
+                     size >= 16 ? 'text-[0.6rem] md:text-sm' : 
+                     size >= 9 ? 'text-base md:text-2xl' : 
+                     'text-xl md:text-3xl'
                  ]"
                  :style="{ color: getCellTextColor(cell) }"
                  @mousedown="selectCell(cell)"
+                 @touchstart.prevent="selectCell(cell)"
             >
                 <!-- Value -->
                 <span v-if="cell.value">{{ formatNum(cell.value) }}</span>
@@ -600,7 +626,8 @@ const formatNum = (n: number) => {
         <div class="flex flex-wrap justify-center gap-2 max-w-2xl">
             <button v-for="n in numpadItems" :key="n"
                     @click="handleInput(n)"
-                    class="w-10 h-14 md:w-14 md:h-16 rounded-xl font-black text-xl shadow-md border-b-4 transition-all active:scale-95 active:border-b-0 active:translate-y-1 relative flex flex-col items-center justify-center pt-1"
+                    @touchstart.prevent="handleInput(n)"
+                    class="w-10 h-12 md:w-14 md:h-16 rounded-xl font-black text-xl shadow-md border-b-4 transition-all active:scale-95 active:border-b-0 active:translate-y-1 relative flex flex-col items-center justify-center pt-1 touch-manipulation"
                     :class="[
                         activeNumber === n ? 'bg-blue-500 text-white border-blue-700' : 'bg-stone-100 text-stone-700 border-stone-300 hover:bg-stone-200'
                     ]"

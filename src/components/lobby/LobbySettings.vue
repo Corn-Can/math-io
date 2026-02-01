@@ -13,6 +13,7 @@ const props = defineProps<{
   settings?: Record<string, any>; // Generic settings object
   // Deprecated/Legacy support overrides
   duration?: number;
+  disabled?: boolean;
 }>();
 
 const emit = defineEmits(['update-mode', 'update-settings', 'update-duration']);
@@ -29,7 +30,7 @@ const getValue = (key: string) => {
 };
 
 const handleUpdate = (key: string, value: any) => {
-  if (!props.isHost) return;
+  if (!props.isHost || props.disabled) return;
   
   // Special case for duration to match existing backend event
   if (key === 'duration') {
@@ -51,7 +52,7 @@ const handleUpdate = (key: string, value: any) => {
             :value="currentMode"
             @change="isHost && emit('update-mode', ($event.target as HTMLSelectElement).value)"
             class="w-full appearance-none bg-white border-2 border-stone-200 text-stone-700 font-bold text-sm rounded-xl px-4 py-3 pr-8 focus:outline-none focus:border-stone-800 focus:ring-0 transition-colors disabled:bg-stone-100 disabled:text-stone-400"
-            :disabled="!isHost"
+            :disabled="!isHost || disabled"
         >
             <option v-for="mode in gameModes" :key="mode.id" :value="mode.id">
                 {{ t(mode.labelKey || mode.label || mode.name) }}
@@ -84,8 +85,8 @@ const handleUpdate = (key: string, value: any) => {
             :step="config.step" 
             :value="getValue(key as string)" 
             @input="handleUpdate(key as string, ($event.target as HTMLInputElement).value)"
-            class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-stone-800"
-            :disabled="!isHost"
+            class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-stone-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="!isHost || disabled"
           >
           <div class="flex justify-between text-[10px] text-stone-400 font-mono mt-2" v-if="config.min !== undefined && config.max !== undefined">
             <span>{{ config.min }}</span>
@@ -98,8 +99,8 @@ const handleUpdate = (key: string, value: any) => {
           <select 
               :value="getValue(key as string)"
               @change="handleUpdate(key as string, ($event.target as HTMLSelectElement).value)"
-              class="w-full appearance-none bg-white border-2 border-stone-200 text-stone-700 font-bold text-sm rounded-xl px-4 py-3 pr-8 focus:outline-none focus:border-stone-800"
-              :disabled="!isHost"
+              class="w-full appearance-none bg-white border-2 border-stone-200 text-stone-700 font-bold text-sm rounded-xl px-4 py-3 pr-8 focus:outline-none focus:border-stone-800 disabled:bg-stone-100 disabled:text-stone-400"
+              :disabled="!isHost || disabled"
           >
               <option v-for="opt in config.options" :key="opt.value" :value="opt.value">
                   {{ opt.label }}

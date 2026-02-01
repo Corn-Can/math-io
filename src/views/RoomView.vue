@@ -10,15 +10,23 @@ import HelpModal from '@/components/ui/HelpModal.vue';
 import AlertModal from '@/components/ui/AlertModal.vue';
 import { useT } from '@/utils/i18n-tracker';
 import { usePremium } from '@/composables/usePremium';
+import { useScreenSize } from '@/composables/useScreenSize';
+
 import GoogleAd from '@/components/GoogleAd.vue';
+import GameResultModal from '@/components/game/GameResultModal.vue';
+
+// Local flag to override server state for lobby return
+const localLobbyOverride = ref(false);
 
 const { t } = useT();
 const route = useRoute();
 const router = useRouter();
+const { isMobile } = useScreenSize();
 
 const showHelp = ref(false);
 const showAlert = ref(false);
 const alertMessage = ref('');
+const showMobileMenu = ref(false);
 
 const roomId = route.query.room as string;
 const gameId = (route.query.game as string) || 'fruitbox';
@@ -83,9 +91,12 @@ const gameComp = computed(() => currentGame ? defineAsyncComponent(currentGame.c
 const maxPlayers = computed(() => (currentGame as any)?.maxPlayers || 8);
 const isHost = computed(() => myId.value === hostId.value);
 const amIReady = computed(() => players.value.find(p => p.id === myId.value)?.isReady || false);
+const amIEliminated = computed(() => players.value.find(p => p.id === myId.value)?.isEliminated || false);
 const allReady = computed(() => players.value.length >= 2 && players.value.every(p => p.isReady || p.id === hostId.value));
 
 const finalResult = ref<any>(null);
+const finalPlayers = ref<Player[]>([]); // Snapshot for result modal
+
 const sortedPlayers = computed(() => {
   return [...players.value].sort((a, b) => {
     // Priority: Alive first
@@ -95,6 +106,12 @@ const sortedPlayers = computed(() => {
     return b.score - a.score;
   });
 });
+
+
+
+const isMatchEnded = ref(false);
+const showResultModal = ref(false);
+const serverTimeOffset = ref(0); // To allow Game.vue to render accurate synchronized time
 
 const matchResult = computed(() => {
   if (sortedPlayers.value.length === 0) return 'DRAW';
@@ -111,12 +128,25 @@ onMounted(() => {
     isConnected.value = true;
     myId.value = socket.value?.id || '';
     socket.value?.emit('join-room', {roomId, name: localStorage.getItem('math_io_username') || 'Player'});
+    // Start Sync
+    socket.value?.emit('sync-time', Date.now());
   });
 
   socket.value.on('error', (msg: string) => {
     alertMessage.value = msg;
     showAlert.value = true;
     router.replace('/');
+  });
+
+  // Time Sync Response
+  socket.value.on('sync-time-response', (data: { serverTime: number, clientSendTime: number }) => {
+      const now = Date.now();
+      const latency = (now - data.clientSendTime) / 2;
+      // ServerTime = LocalTime + Offset
+      // Data.ServerTime = (LocalSend + Latency) + Offset
+      // Offset = Data.ServerTime - (LocalSend + Latency)
+      serverTimeOffset.value = data.serverTime - (data.clientSendTime + latency);
+      console.log('Time Synced. Offset:', serverTimeOffset.value, 'ms, Latency:', latency, 'ms');
   });
 
   socket.value.on('room-state', (state: any) => {
@@ -129,6 +159,11 @@ onMounted(() => {
     }
     serverStatus.value = state.status;
     
+    // Clear Match Ended flag if server resets to lobby or starts new game
+    if (state.status === 'waiting' || state.status === 'playing') {
+       isMatchEnded.value = false;
+    }
+    
     // Sync Start Time if valid
     if (state.startTime && state.status === 'playing') {
         gameStartTime.value = state.startTime;
@@ -139,9 +174,19 @@ onMounted(() => {
     if (state.seed) {
         gameSeed.value = state.seed;
     }
-    // If server says waiting, go to lobby
-    if (state.status === 'waiting') roomState.value = 'LOBBY';
-    else if (state.status === 'playing') roomState.value = 'PLAYING';
+    // If server says waiting, go to lobby (clear override)
+    if (state.status === 'waiting') {
+        roomState.value = 'LOBBY';
+        localLobbyOverride.value = false; 
+    }
+    else if (state.status === 'playing') {
+        // Late Join: Always go to LOBBY first to wait/spectate
+        // Unless we determine we are an ACTIVE player? (Optimization for rejoiners)
+        // User requested: "Players can join in middle, but wait in lobby"
+        // So we default to LOBBY.
+        roomState.value = 'LOBBY';
+        localLobbyOverride.value = true;
+    }
   });
 
   socket.value.on('update-players', (serverPlayers: Player[]) => {
@@ -195,16 +240,36 @@ onMounted(() => {
         gameSeed.value = payload;
         gameStartTime.value = Date.now();
     }
+    // Clear override on new game start (force join)
+    localLobbyOverride.value = false;
     roomState.value = 'PLAYING';
     serverStatus.value = 'playing';
     playSound('common', 'select', 0.8);
   });
 
   socket.value.on('game-over', (result: any) => {
-    // Force switch to Result screen when server decides it ends
+    // Show Result Modal regardless of state
+    isMatchEnded.value = true;
     finalResult.value = result;
-    roomState.value = 'RESULT';
-    playSound('common', 'win', 0.8);
+    // Snapshot players scores/status for the result board before they are reset
+    finalPlayers.value = JSON.parse(JSON.stringify(sortedPlayers.value));
+    showResultModal.value = true;
+    
+    // Auto-Reset Room if Host
+    if (isHost.value) {
+        setTimeout(() => {
+            socket.value?.emit('reset-room', roomId);
+        }, 500); // Small delay to ensuring clients receive game-over first
+    }
+
+    // Play sound based on result
+    setTimeout(() => {
+      if (matchResult.value === 'WIN') {
+        playSound('common', 'win', 0.8);
+      } else if (matchResult.value === 'LOSE') {
+        playSound('common', 'lose', 0.3);
+      }
+    }, 300);
   });
 });
 
@@ -212,12 +277,13 @@ onUnmounted(() => {
   if (socket.value) socket.value.disconnect();
 });
 
+// --- Time Sync ---
+const syncTime = () => {
+    socket.value?.emit('sync-time', Date.now());
+};
+
 const toggleReady = () => {
-    if (serverStatus.value !== 'waiting') {
-        alertMessage.value = t('room.waitHostReset', 'Please wait for the host to reset the room.');
-        showAlert.value = true;
-        return;
-    }
+    // User requested unrestricted ready toggling
     socket.value?.emit('toggle-ready', roomId);
     playSound('common', 'select', 0.5);
 };
@@ -238,6 +304,8 @@ const handleUpdateSettings = ({ key, value }: { key: string, value: any }) => {
     // For now, we only support 'duration', but this makes it extensible
     if (key === 'duration') {
         updateDuration(Number(value));
+        // Reset match ended flag if host changes settings (implies intent to restart?)
+        // actually, changing settings usually happens before start.
     } else {
         // Generic Update
         socket.value?.emit('update-options', { roomId, options: { [key]: value } });
@@ -264,39 +332,48 @@ const handleScoreUpdate = (newScore: number) => {
 
 const handleGameOver = (result: any) => {
   finalResult.value = result;
-  roomState.value = 'RESULT';
+  showResultModal.value = true;
 };
 
-watch(roomState, (newState) => {
-  if (newState === 'RESULT') {
-    setTimeout(() => {
-      if (matchResult.value === 'WIN') {
-        playSound('common', 'win', 0.8);
-      } else if (matchResult.value === 'LOSE') {
-        playSound('common', 'lose', 0.3);
-      }
-    }, 300);
-  }
-});
+const handleShowResult = (payload: any) => {
+    finalResult.value = payload;
+    showResultModal.value = true;
+};
+
+// watch(roomState) remove or adjust if needed, currently sound is handled in event
 
 
 const restartGame = () => {
   if (isHost.value) {
     socket.value?.emit('reset-room', roomId);
   }
-  roomState.value = 'LOBBY';
+  // We don't force LOBBY here locally, wait for server
+  // But we close the modal? Or keep it open?
+  // User wants: "Wait for host reset... prevent forcing everyone back"
+  // If host clicks "Play Again", server resets.
+  // We can close our own modal if we are the host, OR just leave it open until server status changes?
+  // Actually, standard UX: if I click "Play Again", I usually expect to go to lobby.
+  // But for others, it should stay open.
+  showResultModal.value = false; 
+};
+
+const handleBackToLobby = () => {
+    localLobbyOverride.value = true;
+    roomState.value = 'LOBBY';
+    showResultModal.value = false;
 };
 </script>
 
 <template>
   <div class="flex h-screen bg-stone-50 font-sans overflow-hidden text-stone-800 selection:bg-stone-300">
     
-    <aside class="w-80 bg-stone-100 border-r border-stone-200 flex flex-col z-20 shadow-xl shadow-stone-200/50">
+    <!-- Mobile Sidebar Overlay -->
+    <div v-if="showMobileMenu" class="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm" @click="showMobileMenu = false"></div>
+
+    <aside class="fixed inset-y-0 left-0 z-40 w-80 bg-stone-100 border-r border-stone-200 flex flex-col shadow-2xl transform transition-transform duration-300 lg:translate-x-0 lg:static lg:shadow-xl"
+           :class="showMobileMenu ? 'translate-x-0' : '-translate-x-full'">
       
-      <div class="p-6 bg-white border-b border-stone-200">
-        <button @click="router.push(`/lobby/${gameId}`)" class="text-xs font-bold text-stone-400 hover:text-stone-800 transition mb-2 tracking-widest">
-          ← {{ t('room.exit', 'EXIT') }}
-        </button>
+      <div class="p-6 pt-24 lg:pt-6 bg-white border-b border-stone-200">
         <h1 class="text-2xl font-black text-stone-900 leading-none mb-1">
           {{ t(currentGame?.nameKey || '') }}
         </h1>
@@ -350,13 +427,26 @@ const restartGame = () => {
         </TransitionGroup>
       </div>
 
-      <div class="p-4 bg-stone-200 text-center text-xs text-stone-500 font-mono border-t border-stone-300">
-        Math.io • v1.0
+      <div class="p-4 pb-24 bg-stone-200 text-center text-xs text-stone-500 font-mono border-t border-stone-300 flex flex-col gap-2">
+        <button @click="router.push(`/lobby/${gameId}`)" class="w-full py-2 bg-white text-stone-600 rounded-lg font-bold hover:bg-red-50 hover:text-red-500 transition shadow-sm">
+           {{ t('room.exit', 'EXIT ROOM') }}
+        </button>
+        <span>Math.io • v1.0</span>
       </div>
     </aside>
 
-    <main class="flex-1 relative bg-stone-50 flex flex-col">
+    <main class="flex-1 relative bg-stone-50 flex flex-col w-full">
       
+      <!-- Mobile Menu Button -->
+      <button @click="showMobileMenu = !showMobileMenu" class="lg:hidden absolute top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md border border-stone-200 text-stone-600 transition-colors" :class="showMobileMenu ? 'bg-stone-100 text-stone-900' : ''">
+        <svg v-if="!showMobileMenu" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
       <div v-if="roomState === 'LOBBY'" class="flex-1 flex flex-col relative overflow-hidden">
         
         <!-- Scrollable Content -->
@@ -365,6 +455,9 @@ const restartGame = () => {
               
               <div class="text-center mb-10 mt-8">
                 <h2 class="text-4xl font-black text-stone-800 mb-2 tracking-tight">{{ t('room.waitingRoom', 'WAITING ROOM') }}</h2>
+                <div v-if="serverStatus === 'playing' && !isMatchEnded" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-lg font-bold inline-block mb-2 animate-pulse">
+                    ⚠️ {{ t('room.gameInProgress', 'Game in Progress...') }}
+                </div>
                 <p class="text-stone-500">
                     {{ isHost ? t('room.hostWait', '你是房主，請等待玩家準備') : t('room.playerWait', '請準備並等待房主開始') }}
                 </p>
@@ -410,6 +503,7 @@ const restartGame = () => {
                     :duration="gameDuration"
                     :settings="gameOptions"
                     :game-id="gameId"
+                    :disabled="serverStatus === 'playing' && !isMatchEnded"
                     @update-mode="changeMode"
                     @update-duration="updateDuration"
                     @update-settings="handleUpdateSettings"
@@ -440,10 +534,19 @@ const restartGame = () => {
               :class="allReady
                 ? 'bg-stone-800 text-white border-stone-950 hover:bg-stone-700' 
                 : 'bg-stone-200 text-stone-400 border-stone-300 cursor-not-allowed'"
-              :disabled="!allReady"
+              :disabled="!allReady || (serverStatus === 'playing' && !isMatchEnded)"
             >
-              {{ players.length < 2 ? t('room.waitingForPlayers', 'WAITING FOR PLAYERS') : (allReady ? t('room.startGame', 'START GAME') : t('room.waitingForReady', 'WAITING FOR READY')) }}
+              {{ 
+                  (serverStatus === 'playing' && !isMatchEnded) ? t('room.gameRunning', 'GAME RUNNING') :
+                  players.length < 2 ? t('room.waitingForPlayers', 'WAITING FOR PLAYERS') : 
+                  (allReady ? t('room.startGame', 'START GAME') : t('room.waitingForReady', 'WAITING FOR READY')) 
+              }}
             </button>
+        </div>
+
+        <!-- Mobile Ad (Bottom of Screen) -->
+        <div v-if="isMobile" class="md:hidden w-full flex justify-center bg-stone-100 border-t border-stone-200 p-1 shrink-0 z-20 h-[60px] overflow-hidden">
+             <GoogleAd slotId='ca-pub-7220627835291556' format="auto" />
         </div>
 
       </div>
@@ -470,85 +573,37 @@ const restartGame = () => {
           :options="{ ...gameOptions, duration: gameDuration }"
           :seed="gameSeed"
           :startTime="gameStartTime"
+          :server-time-offset="serverTimeOffset"
           :socket="socket" 
           @score-update="handleScoreUpdate"
           @game-over="handleGameOver"
+          @back-to-lobby="handleBackToLobby"
+          @show-result="handleShowResult"
         />
-      </div>
 
-      <div v-else-if="roomState === 'RESULT'" class="flex-1 flex flex-col items-center justify-center p-8 bg-stone-100/50">
-        
-        <div class="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-stone-200 overflow-hidden border border-stone-200 animate-fade-in-up">
-          
-          <div class="p-8 text-center relative overflow-hidden"
-               :class="matchResult === 'WIN' ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-600'">
-            
-            <div class="absolute inset-0 opacity-10 pointer-events-none" 
-                 style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 20px 20px;">
+        <!-- Spectator 'Exit to Lobby' Button (Overlay) -->
+        <!-- Only show if playing, I am eliminated, and modal is closed -->
+        <div v-if="amIEliminated && !showResultModal" class="absolute top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-col items-center gap-2">
+             <div class="bg-stone-900/90 text-white px-4 py-2 rounded-full shadow-xl flex items-center gap-2 animate-pulse cursor-default">
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                <span class="font-black text-xs uppercase tracking-wider">SPECTATING</span>
             </div>
-
-            <div class="relative z-10">
-              <div class="text-xs font-bold tracking-[0.3em] uppercase mb-2 opacity-60">
-                {{ matchResult === 'WIN' ? 'Mission Complete' : 'Game Over' }}
-              </div>
-              <h2 class="text-6xl font-black tracking-tighter mb-1">
-                {{ matchResult === 'WIN' ? t('room.victory', 'VICTORY') : (matchResult === 'LOSE' ? t('room.defeat', 'DEFEAT') : t('room.draw', 'DRAW')) }}
-              </h2>
-              <div class="font-mono text-sm opacity-80">
-                {{ matchResult === 'WIN' ? t('room.newRecord', 'New Record!') : t('room.goodEffort', 'Good Effort') }}
-              </div>
-            </div>
-          </div>
-
-          <div class="p-8 space-y-6">
-            
-            <div class="grid grid-cols-2 gap-4">
-              <div class="p-4 bg-stone-50 rounded-2xl border border-stone-100 flex flex-col items-center">
-                <span class="text-xs font-bold text-stone-400 uppercase mb-1">{{ t('room.rank', 'Rank') }}</span>
-                <span class="text-3xl font-black text-stone-800">
-                  <span class="text-lg text-stone-400 align-top mr-1">#</span>{{ sortedPlayers.findIndex(p => p.id === myId) + 1 }}
-                </span>
-              </div>
-              <div class="p-4 bg-stone-50 rounded-2xl border border-stone-100 flex flex-col items-center">
-                <span class="text-xs font-bold text-stone-400 uppercase mb-1">{{ t('room.score', 'Score') }}</span>
-                <span class="text-3xl font-black text-stone-800 font-mono">{{ finalResult?.score || 0 }}</span>
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <div class="text-xs font-bold text-stone-400 uppercase tracking-widest text-center mb-2">- {{ t('room.leaderboard', 'Leaderboard') }} -</div>
-              <div v-for="(p, index) in sortedPlayers.slice(0, 3)" :key="p.id" 
-                   class="flex items-center justify-between py-2 px-3 rounded-lg text-sm"
-                   :class="p.id === myId ? 'bg-blue-50 text-blue-800 font-bold' : 'text-stone-600'">
-                 <div class="flex items-center gap-3">
-                   <div class="w-5 text-center opacity-50 font-mono">{{ index + 1 }}</div>
-                   <div class="truncate max-w-[120px]">{{ p.name }}</div>
-                 </div>
-                 <div class="font-mono opacity-80">{{ p.score }}</div>
-              </div>
-            </div>
-
-            <button @click="restartGame" class="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white rounded-xl font-bold shadow-lg shadow-stone-200 transition-transform hover:-translate-y-0.5 active:scale-95">
-              {{ t('room.playAgain', 'Play Again') }}
+            <button @click="handleBackToLobby" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-[10px] font-bold shadow hover:bg-red-600 border border-red-700 active:scale-95 transition-transform">
+                EXIT TO LOBBY
             </button>
-
-          </div>
         </div>
-
-        <div class="mt-6 text-xs text-stone-400 font-mono">
-          Math.io Match ID: {{ roomId }}
-        </div>
-
       </div>
+
+
 
     </main>
 
-    <aside class="hidden xl:flex w-80 bg-stone-100 border-l border-stone-200 flex-col z-20 shadow-xl shadow-stone-200/50">
+    <aside class="hidden md:flex w-80 bg-stone-100 border-l border-stone-200 flex-col z-20 shadow-xl shadow-stone-200/50">
       
       <div class="p-6 border-b border-stone-200">
         <div class="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">SPONSORED</div>
 
-        <GoogleAd slotId='ca-pub-7220627835291556' format="rectangle" />
+        <GoogleAd v-if="!isMobile" slotId='ca-pub-7220627835291556' format="rectangle" />
 
         <div v-if="!isPremium" class="mt-4">
             <div v-if="!showRedeem" class="text-center">
@@ -607,6 +662,19 @@ const restartGame = () => {
       :show="showHelp" 
       :game="currentGame" 
       @close="showHelp = false" 
+    />
+
+    <GameResultModal 
+      :show="showResultModal"
+      :match-result="matchResult"
+      :final-result="finalResult"
+      :sorted-players="finalPlayers"
+      :my-id="myId"
+      :is-host="isHost"
+      :is-game-running="serverStatus === 'playing' && !isMatchEnded"
+      @close="showResultModal = false"
+      @play-again="restartGame"
+      @back-to-lobby="handleBackToLobby"
     />
 
     <AlertModal 

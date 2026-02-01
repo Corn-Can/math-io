@@ -25,9 +25,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-2 group">
+  <div class="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-2 group pointer-events-none">
     
-    <div class="mb-2 p-5 rounded-2xl bg-stone-900/95 backdrop-blur-md border border-stone-700 shadow-2xl shadow-black/50 transform translate-y-4 opacity-0 invisible group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out origin-bottom-left w-48">
+    <div class="mb-2 p-5 rounded-2xl bg-stone-900/95 backdrop-blur-md border border-stone-700 shadow-2xl shadow-black/50 transform translate-y-4 opacity-0 invisible group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out origin-bottom-left w-48 pointer-events-auto">
       
       <div class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-4 border-b border-stone-800 pb-2">
         Audio Settings
@@ -65,7 +65,7 @@ onMounted(() => {
 
     <button 
       @click="handleToggle"
-      class="w-12 h-12 rounded-full bg-stone-900 text-white flex items-center justify-center shadow-xl border border-stone-700 transition-all duration-300 group-hover:scale-110 group-hover:border-stone-500 hover:bg-stone-800"
+      class="w-12 h-12 rounded-full bg-stone-900 text-white flex items-center justify-center shadow-xl border border-stone-700 transition-all duration-300 group-hover:scale-110 group-hover:border-stone-500 hover:bg-stone-800 pointer-events-auto"
       :class="{'animate-pulse-slow': isBgmPlaying}" 
     >
       <svg v-if="isBgmPlaying" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

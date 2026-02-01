@@ -12,6 +12,8 @@ const props = defineProps<{
   seed?: number;
   socket: Socket | null;
   players?: any[];
+  startTime?: number | null;
+  serverTimeOffset?: number;
 }>();
 
 const emit = defineEmits(['game-over', 'score-update']);
@@ -134,12 +136,25 @@ const score = ref(0);
 let timerInterval: any = null;
 
 const startTimer = () => {
-  timeLeft.value = GAME_DURATION;
-  score.value = 0;
-  timerInterval = setInterval(() => {
-    if (timeLeft.value > 0) timeLeft.value--;
-    else endGame();
-  }, 1000);
+    timeLeft.value = GAME_DURATION;
+    score.value = 0;
+    
+    const updateTime = () => {
+        if (props.startTime) {
+             // Calculate CURRENT SERVER TIME = Local + Offset
+             const serverNow = Date.now() + (props.serverTimeOffset || 0);
+             const elapsedSeconds = (serverNow - props.startTime) / 1000;
+             timeLeft.value = Math.max(0, Math.floor(GAME_DURATION - elapsedSeconds));
+        } else {
+             // Fallback
+             if (timeLeft.value > 0) timeLeft.value--;
+        }
+        
+        if (timeLeft.value <= 0) endGame();
+    };
+
+    updateTime(); // Initial
+    timerInterval = setInterval(updateTime, 1000);
 };
 
 const endGame = () => {
@@ -256,6 +271,64 @@ const onGlobalMouseUp = () => {
   if(isSelecting.value) onMouseUp();
 }
 
+// --- Touch Mobile Support ---
+const onTouchStart = (e: TouchEvent) => {
+    // Prevent scrolling
+    // e.preventDefault(); // Handled by @touchstart.prevent in template if possible, or here.
+    
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    if (!touch) return; 
+
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!el) return;
+    
+    // Find the cell element
+    const cellEl = el.closest('[data-cell-id]');
+    if (cellEl && cellEl instanceof HTMLElement) {
+        const id = cellEl.dataset.cellId;
+        // Find cell data
+        for(const row of engine.state.grid) {
+            const c = row.find(x => x.id === id);
+            if (c) {
+                onMouseDown(c);
+                break;
+            }
+        }
+    }
+};
+
+const onTouchMove = (e: TouchEvent) => {
+    if (!isSelecting.value) return;
+    // e.preventDefault(); // Important to stop scroll
+    
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!el) return;
+    
+    const cellEl = el.closest('[data-cell-id]');
+    if (cellEl && cellEl instanceof HTMLElement) {
+        const id = cellEl.dataset.cellId;
+        if(id) {
+             // Find cell data
+            for(const row of engine.state.grid) {
+                const c = row.find(x => x.id === id);
+                if (c) {
+                    onMouseEnter(c); // Re-use mouse logic
+                    break;
+                }
+            }
+        }
+    }
+};
+
+const onTouchEnd = () => {
+    onMouseUp();
+};
+
 // --- Listeners & Lifecycle ---
 const onAttackReceived = () => {
   if (props.mode === 'attack') handleAttackReceived();
@@ -337,7 +410,7 @@ onUnmounted(() => {
     </div>
 
     <div 
-      class="game-board grid grid-cols-[repeat(15,minmax(0,1fr))] gap-1.5 bg-white p-3 rounded-2xl shadow-xl shadow-stone-200 border-4 transition-all duration-300"
+      class="game-board grid grid-cols-[repeat(15,minmax(0,1fr))] gap-1 bg-white p-2 md:p-3 rounded-2xl shadow-xl shadow-stone-200 border-4 transition-all duration-300 w-full md:w-auto touch-none"
       :class="{
         'border-red-100': mode === 'attack',
         'border-blue-100': mode === 'territory',
@@ -345,11 +418,15 @@ onUnmounted(() => {
         'border-stone-100': mode === 'classic'
       }"
       @mouseleave="onGlobalMouseUp"
+      @touchstart.prevent="onTouchStart"
+      @touchmove.prevent="onTouchMove"
+      @touchend="onTouchEnd"
     >
       <div
         v-for="cell in flatBoard"
         :key="cell.id"
-        class="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 flex items-center justify-center text-xl font-black rounded-lg cursor-pointer transition-all duration-100 border-b-4 relative overflow-hidden"
+        :data-cell-id="cell.id"
+        class="w-full aspect-square md:w-10 md:h-10 lg:w-12 lg:h-12 flex items-center justify-center text-sm md:text-xl font-black rounded cursor-pointer transition-all duration-100 border-b-2 md:border-b-4 relative overflow-hidden select-none"
         :class="{
           'opacity-0': cell.status === 'cleared' || cell.status === 'opponent-cleared', 
           'bg-stone-100 border-stone-200 text-stone-600 hover:bg-white hover:-translate-y-0.5': cell.status === 'normal' && !selectedCellIds.has(cell.id) && !occupiedCells[cell.id],

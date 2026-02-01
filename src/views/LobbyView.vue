@@ -97,7 +97,7 @@ const joinRoom = (roomId: string, roomMode?: string) => {
 <template>
   <div class="min-h-screen bg-stone-50 text-stone-800 font-sans flex flex-col">
     
-    <div class="bg-stone-900 text-stone-50 pt-12 pb-20 px-8 relative overflow-hidden shadow-2xl z-10">
+    <div class="bg-stone-900 text-stone-50 pt-12 pb-12 md:pb-20 px-4 md:px-8 relative overflow-hidden shadow-2xl z-10">
        
       <ParticleBg 
          color="rgba(255, 255, 255, 0.3)" 
@@ -105,33 +105,33 @@ const joinRoom = (roomId: string, roomMode?: string) => {
          :count="50" 
        />
 
-       <div class="max-w-6xl mx-auto relative z-10 flex flex-col md:flex-row justify-between items-end gap-6">
+       <div class="max-w-6xl mx-auto relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
          <div>
            <button @click="router.push('/')" class="text-xs font-bold text-stone-500 hover:text-white transition mb-4 flex items-center gap-2">
              <span>←</span> {{ t('lobby.backToHome', 'BACK TO HOME') }}
            </button>
-           <h1 class="text-5xl md:text-6xl font-black tracking-tight leading-none mb-2">
+           <h1 class="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight leading-none mb-3 break-words">
              {{ t(currentGame?.nameKey || '') }}
            </h1>
-           <div class="flex gap-2">
+           <div class="flex flex-wrap gap-2">
              <span class="bg-stone-800 text-stone-300 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider border border-stone-700">{{ t('lobby.lobbyTag', 'Lobby') }}</span>
              <span class="bg-blue-900/30 text-blue-300 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider border border-blue-900/50">{{ t('lobby.liveTag', 'Live') }}</span>
            </div>
          </div>
 
-         <div class="flex gap-3">
-            <div class="flex bg-stone-800 p-1 rounded-xl border border-stone-700">
-               <input v-model="privateRoomId" type="text" :placeholder="t('lobby.enterId', 'ENTER ID')" class="bg-transparent text-white px-4 py-2 w-32 focus:outline-none font-mono text-center uppercase placeholder:text-stone-600" @keyup.enter="joinRoom(privateRoomId.toUpperCase())">
-               <button @click="joinRoom(privateRoomId.toUpperCase())" class="bg-stone-700 hover:bg-stone-600 text-white px-4 py-2 rounded-lg font-bold transition">{{ t('lobby.go', 'GO') }}</button>
+         <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0">
+            <div class="flex bg-stone-800 p-1 rounded-xl border border-stone-700 w-full sm:w-auto">
+               <input v-model="privateRoomId" type="text" :placeholder="t('lobby.enterId', 'ENTER ID')" class="bg-transparent text-white px-4 py-3 w-full sm:w-32 focus:outline-none font-mono text-center uppercase placeholder:text-stone-600 text-sm" @keyup.enter="joinRoom(privateRoomId.toUpperCase())">
+               <button @click="joinRoom(privateRoomId.toUpperCase())" class="bg-stone-700 hover:bg-stone-600 text-white px-6 py-2 rounded-lg font-bold transition shrink-0">{{ t('lobby.go', 'GO') }}</button>
             </div>
-            <button @click="isCreating = true" class="bg-white text-stone-900 hover:bg-stone-200 px-8 py-3 rounded-xl font-bold shadow-lg shadow-black/20 transition transform hover:-translate-y-1">
+            <button @click="isCreating = true" class="bg-white text-stone-900 hover:bg-stone-200 px-8 py-3 rounded-xl font-bold shadow-lg shadow-black/20 transition transform hover:-translate-y-1 w-full sm:w-auto text-center shrink-0">
               + {{ t('lobby.createRoom', 'CREATE ROOM') }}
             </button>
          </div>
        </div>
     </div>
 
-    <div class="flex-1 px-8 -mt-10 relative z-20 pb-12">
+    <div class="flex-1 px-4 md:px-8 -mt-6 md:-mt-10 relative z-20 pb-12">
       <div class="max-w-6xl mx-auto">
         
         <div v-if="publicRooms.length === 0" class="bg-white rounded-2xl p-16 text-center shadow-xl shadow-stone-200 border border-stone-100">
