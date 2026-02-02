@@ -33,7 +33,8 @@
         "startBattle": "START BATTLE",
         "roomList": "Room List",
         "joinBattle": "Join a battle or create your own.",
-        "createOne": "Create one?"
+        "createOne": "Create one?",
+        "singlePlayer": "Single Player"
     },
     "room": {
         "invalidRoom": "Invalid Room",
@@ -45,8 +46,9 @@
         "playerWait": "Please get ready and wait for host.",
         "tab": {
             "players": "PLAYERS",
-            "rules": "GAME RULE"
+            "rules": "RULES"
         },
+        "hostOnly": "Only Host can allow this",
         "waitHostReset": "Please wait for the host to reset the room.",
         "ready": "READY!",
         "clickToReady": "CLICK TO READY",
@@ -88,6 +90,11 @@
         "close": "Close"
     },
     "game": {
+        "settings": {
+            "duration": "Duration (sec)",
+            "roundDuration": "Round Duration (sec)",
+            "roundLimit": "Round Limit"
+        },
         "fruitbox": {
             "nameKey": "FruitBox",
             "descriptionKey": "Classic Math Battle Game",
@@ -156,6 +163,41 @@
                     }
                 },
                 "controls": "Mouse Click / Keyboard Numbers / Arrows"
+            }
+        },
+        "seige": {
+            "nameKey": "Seige",
+            "descriptionKey": "Territory Conquest Strategy",
+            "config": {
+                "size": "Grid Size"
+            },
+            "mode": {
+                "classic": {
+                    "label": "Classic",
+                    "desc": "Expand your kingdom"
+                },
+                "item_war": {
+                    "label": "Item War",
+                    "desc": "Battle with special items"
+                }
+            },
+            "help": {
+                "overview": "Roll dice, draw territory, and squeeze your opponents!",
+                "rules": {
+                    "0": {
+                        "title": "Dice",
+                        "content": "Roll 3 dice each turn"
+                    },
+                    "1": {
+                        "title": "Draw",
+                        "content": "Draw a rectangle with area = sum"
+                    },
+                    "2": {
+                        "title": "Conquer",
+                        "content": "Must touch your own land"
+                    }
+                },
+                "controls": "Drag to draw"
             }
         }
     }

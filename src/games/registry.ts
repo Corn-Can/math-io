@@ -39,6 +39,7 @@ export interface GameModule {
   component: () => Promise<any>;
   settingsComponent?: () => Promise<any>;
   tutorialComponent?: () => Promise<any>;
+  enableSinglePlayer?: boolean;
 }
 
 // 這裡是你未來新增遊戲唯一需要修改的地方
@@ -74,7 +75,7 @@ export const GAME_REGISTRY: Record<string, GameModule> = {
     configSchema: {
       duration: {
         type: 'number',
-        label: 'Duration (sec)',
+        label: 'game.settings.duration',
         default: 120,
         min: 30,
         max: 300,
@@ -99,6 +100,7 @@ export const GAME_REGISTRY: Record<string, GameModule> = {
       ],
       controlsKey: "game.fruitbox.help.controls"
     },
+    enableSinglePlayer: true,
     component: () => import('./fruitbox/Game.vue')
   },
   sudoku: {
@@ -107,6 +109,7 @@ export const GAME_REGISTRY: Record<string, GameModule> = {
     descriptionKey: 'game.sudoku.descriptionKey',
     thumbnail: '/images/sudoku/cover.jpg', // Placeholder
     maxPlayers: 8,
+    enableSinglePlayer: true,
     modes: [
       {
         id: 'classic',
@@ -143,7 +146,7 @@ export const GAME_REGISTRY: Record<string, GameModule> = {
       },
       duration: {
         type: 'number',
-        label: 'Duration (sec) 0=Infinite',
+        label: 'game.settings.duration',
         default: 300,
         min: 0,
         max: 3600,
@@ -151,7 +154,7 @@ export const GAME_REGISTRY: Record<string, GameModule> = {
       },
       mistakeLimit: {
         type: 'number',
-        label: 'Mistake Limit (0=Infinity)',
+        label: 'game.settings.mistakeLimit',
         default: 3,
         min: 0,
         max: 10,
@@ -180,5 +183,74 @@ export const GAME_REGISTRY: Record<string, GameModule> = {
       controlsKey: 'game.sudoku.help.controls'
     },
     component: () => import('./sudoku/Game.vue')
-  }
+  },
+  // seige: {
+  //   id: 'seige',
+  //   nameKey: 'game.seige.nameKey',
+  //   descriptionKey: 'game.seige.descriptionKey',
+  //   thumbnail: '/images/seige/cover.jpg', // Placeholder
+  //   maxPlayers: 4,
+  //   modes: [
+  //     {
+  //       id: 'classic',
+  //       labelKey: 'game.seige.mode.classic.label',
+  //       descriptionKey: 'game.seige.mode.classic.desc'
+  //     },
+  //     {
+  //       id: 'item_war',
+  //       labelKey: 'game.seige.mode.item_war.label',
+  //       descriptionKey: 'game.seige.mode.item_war.desc'
+  //     }
+  //   ],
+  //   configSchema: {
+  //     size: {
+  //       type: 'select',
+  //       label: 'game.seige.config.size',
+  //       options: [
+  //         { label: '20x20', value: 20 },
+  //         { label: '30x30', value: 30 },
+  //         { label: '40x40', value: 40 }
+  //       ],
+  //       default: 20
+  //     },
+  //     roundLimit: {
+  //       type: 'number',
+  //       label: 'game.settings.roundLimit',
+  //       default: 20,
+  //       min: 10,
+  //       max: 50,
+  //       step: 5
+  //     },
+  //     roundDuration: {
+  //       type: 'number',
+  //       label: 'game.settings.roundDuration',
+  //       default: 30,
+  //       min: 0,
+  //       max: 60,
+  //       step: 3
+  //     }
+  //   },
+  //   help: {
+  //     overview: { contentKey: 'game.seige.help.overview' },
+  //     howToPlay: [
+  //       {
+  //         titleKey: 'game.seige.help.rules.0.title',
+  //         image: '/images/seige/help0.jpg',
+  //         contentKey: 'game.seige.help.rules.0.content'
+  //       },
+  //       {
+  //         titleKey: 'game.seige.help.rules.1.title',
+  //         image: '/images/seige/help1.jpg',
+  //         contentKey: 'game.seige.help.rules.1.content'
+  //       },
+  //       {
+  //         titleKey: 'game.seige.help.rules.2.title',
+  //         image: '/images/seige/help2.jpg',
+  //         contentKey: 'game.seige.help.rules.2.content'
+  //       }
+  //     ],
+  //     controlsKey: 'game.seige.help.controls'
+  //   },
+  //   component: () => import('./seige/Game.vue')
+  // }
 };

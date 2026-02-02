@@ -19,6 +19,11 @@ const SOUND_LIBRARY = {
     error: '/sounds/games/sudoku/error.ogg',
     select: '/sounds/games/sudoku/select.ogg',
   },
+  seige: {
+    move: '/sounds/games/seige/move.ogg',
+    attack: '/sounds/games/seige/attack.ogg',
+    win: '/sounds/games/seige/win.ogg',
+  }
 };
 
 type SoundCategory = keyof typeof SOUND_LIBRARY;

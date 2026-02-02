@@ -72,7 +72,7 @@ const handleUpdate = (key: string, value: any) => {
       <div v-for="(config, key) in configSchema" :key="key" class="mb-6 last:mb-0">
         
         <div class="flex justify-between items-center mb-3">
-          <h3 class="text-xs font-bold text-stone-400 uppercase tracking-widest">{{ config.label }}</h3>
+          <h3 class="text-xs font-bold text-stone-400 uppercase tracking-widest">{{ t(config.label) }}</h3>
           <span class="font-mono font-bold text-stone-800">{{ getValue(key as string) }}</span>
         </div>
 

@@ -1,9 +1,11 @@
 import FruitBox from './games/FruitBox.js';
 import Sudoku from './games/Sudoku.js';
+import Seige from './games/Seige.js';
 
 const GAMES = {
     'fruitbox': FruitBox,
-    'sudoku': Sudoku
+    'sudoku': Sudoku,
+    'seige': Seige
 };
 
 export default class Room {

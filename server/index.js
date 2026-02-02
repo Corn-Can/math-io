@@ -143,7 +143,8 @@ io.on('connection', (socket) => {
       duration: targetRoom.duration,
       options: targetRoom.options,
       startTime: targetRoom.startTime,
-      seed: targetRoom.seed
+      seed: targetRoom.seed,
+      maxPlayers: targetRoom.maxPlayers // Send maxPlayers
     });
 
     io.to(roomId).emit('update-players', targetRoom.players);
@@ -207,9 +208,13 @@ io.on('connection', (socket) => {
   socket.on('start-countdown', (roomId) => {
     const room = rooms[roomId];
     if (room && room.hostId === socket.id && room.status === 'waiting') {
+      // Logic: If maxPlayers == 1, allow 1 player. Else require 2.
+      const minPlayers = room.maxPlayers === 1 ? 1 : 2;
+
+      const enoughPlayers = room.players.length >= minPlayers;
       const allReady = room.players.every(p => p.isReady || p.id === room.hostId);
 
-      if (allReady) {
+      if (enoughPlayers && allReady) {
         room.status = 'countdown';
         io.to(roomId).emit('countdown-start', 3);
 
@@ -251,7 +256,8 @@ io.on('connection', (socket) => {
         hostId: room.hostId,
         status: room.status,
         duration: room.duration,
-        startTime: null
+        startTime: null,
+        maxPlayers: room.maxPlayers // Send here too
       });
       io.to(roomId).emit('update-players', room.players);
       broadcastRoomList();

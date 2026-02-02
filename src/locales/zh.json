@@ -33,7 +33,8 @@
         "startBattle": "开始对战",
         "roomList": "房间列表",
         "joinBattle": "加入对战或是创建你自己的房间",
-        "createOne": "创建一个？"
+        "createOne": "创建一个？",
+        "singlePlayer": "单人练习"
     },
     "room": {
         "invalidRoom": "无效的房间",
@@ -47,6 +48,7 @@
             "players": "玩家列表",
             "rules": "游戏规则"
         },
+        "hostOnly": "只有房主可以更改设置",
         "waitHostReset": "请等待房主重置房间",
         "ready": "已准备!",
         "clickToReady": "点击准备",
@@ -88,6 +90,11 @@
         "close": "关闭"
     },
     "game": {
+        "settings": {
+            "duration": "游戏时间",
+            "roundDuration": "回合时间",
+            "roundLimit": "回合数"
+        },
         "fruitbox": {
             "nameKey": "凑十",
             "descriptionKey": "经典数学对战游戏",
@@ -156,6 +163,41 @@
                     }
                 },
                 "controls": "鼠标点击 / 键盘数字键 / 方向键移动"
+            }
+        },
+        "seige": {
+            "nameKey": "攻城掠地",
+            "descriptionKey": "领土扩张策略游戏",
+            "config": {
+                "size": "地图大小"
+            },
+            "mode": {
+                "classic": {
+                    "label": "经典战役",
+                    "desc": "扩张你的王国，包围对手"
+                },
+                "item_war": {
+                    "label": "道具战",
+                    "desc": "使用强力道具扭转战局"
+                }
+            },
+            "help": {
+                "overview": "掷骰子决定领土大小，画出矩形来扩张势力！包围你的对手并将其消灭。",
+                "rules": {
+                    "0": {
+                        "title": "掷骰",
+                        "content": "每回合掷 3 颗骰子，总和为领土面积"
+                    },
+                    "1": {
+                        "title": "划地",
+                        "content": "拖拽画出矩形，面积需等于点数总和"
+                    },
+                    "2": {
+                        "title": "扩张",
+                        "content": "新领土必须与现有领土相邻"
+                    }
+                },
+                "controls": "鼠标/触控拖拽以画出范围"
             }
         }
     }

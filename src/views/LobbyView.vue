@@ -107,6 +107,22 @@ const joinRoom = (roomId: string, roomMode?: string) => {
     query: { game: currentGameId, room: roomId, mode:roomMode } 
   });
 };
+
+const isSinglePlayerSetup = ref(false);
+
+const openCreateRoom = () => {
+    isSinglePlayerSetup.value = false;
+    form.value.isPrivate = false;
+    form.value.maxPlayers = 2; // Reset to default multi
+    isCreating.value = true;
+};
+
+const openSinglePlayerSetup = () => {
+    isSinglePlayerSetup.value = true;
+    form.value.isPrivate = true;
+    form.value.maxPlayers = 1; // Force 1 player
+    isCreating.value = true;
+};
 </script>
 
 <template>
@@ -139,7 +155,14 @@ const joinRoom = (roomId: string, roomMode?: string) => {
                <input v-model="privateRoomId" type="text" :placeholder="t('lobby.enterId', 'ENTER ID')" class="bg-transparent text-white px-4 py-3 w-full sm:w-32 focus:outline-none font-mono text-center uppercase placeholder:text-stone-600 text-sm" @keyup.enter="joinRoom(privateRoomId.toUpperCase())">
                <button @click="joinRoom(privateRoomId.toUpperCase())" class="bg-stone-700 hover:bg-stone-600 text-white px-6 py-2 rounded-lg font-bold transition shrink-0">{{ t('lobby.go', 'GO') }}</button>
             </div>
-            <button @click="isCreating = true" class="bg-white text-stone-900 hover:bg-stone-200 px-8 py-3 rounded-xl font-bold shadow-lg shadow-black/20 transition transform hover:-translate-y-1 w-full sm:w-auto text-center shrink-0">
+            <!-- Single Player Button -->
+            <button v-if="currentGame?.enableSinglePlayer" 
+                    @click="openSinglePlayerSetup" 
+                    class="bg-transparent border border-stone-600 text-stone-400 hover:border-white hover:text-white px-6 py-3 rounded-xl font-bold transition transform hover:-translate-y-1 w-full sm:w-auto text-center shrink-0">
+              {{ t('lobby.singlePlayer', 'SINGLE PLAYER') }}
+            </button>
+            
+            <button @click="openCreateRoom" class="bg-white text-stone-900 hover:bg-stone-200 px-8 py-3 rounded-xl font-bold shadow-lg shadow-black/20 transition transform hover:-translate-y-1 w-full sm:w-auto text-center shrink-0">
               + {{ t('lobby.createRoom', 'CREATE ROOM') }}
             </button>
          </div>
@@ -150,7 +173,6 @@ const joinRoom = (roomId: string, roomMode?: string) => {
       <div class="max-w-6xl mx-auto">
         
         <div v-if="publicRooms.length === 0" class="bg-white rounded-2xl p-16 text-center shadow-xl shadow-stone-200 border border-stone-100">
-          <div class="text-6xl mb-4 opacity-20">📭</div>
           <h3 class="text-xl font-bold text-stone-800 mb-2">{{ t('lobby.noRooms', 'No Public Rooms Yet') }}</h3>
           <p class="text-stone-500">{{ t('lobby.beFirst', 'Be the first one to start a battle!') }}</p>
         </div>
@@ -224,16 +246,18 @@ const joinRoom = (roomId: string, roomMode?: string) => {
               </select>
             </div>
             <div>
-              <label class="block text-xs font-bold text-stone-400 mb-1 uppercase tracking-wider">{{ t('lobby.privacy', 'Privacy') }}</label>
-              <select v-model="form.isPrivate" class="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-bold text-stone-800 focus:outline-none focus:border-stone-800">
-                <option :value="false">{{ t('lobby.public', 'Public') }}</option>
-                <option :value="true">{{ t('lobby.private', 'Private') }}</option>
-              </select>
-            </div>
-          </div>
-          <button @click="createRoom" class="w-full bg-stone-900 hover:bg-stone-800 text-white py-4 rounded-xl font-bold mt-2 shadow-lg transition-transform active:scale-95">{{ t('lobby.startBattle', 'START BATTLE') }}</button>
-        </div>
-      </div>
+               <label class="block text-xs font-bold text-stone-400 mb-1 uppercase tracking-wider">{{ t('lobby.privacy', 'Privacy') }}</label>
+               <select v-model="form.isPrivate" class="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-bold text-stone-800 focus:outline-none focus:border-stone-800" :disabled="isSinglePlayerSetup">
+                 <option :value="false">{{ t('lobby.public', 'Public') }}</option>
+                 <option :value="true">{{ t('lobby.private', 'Private') }}</option>
+               </select>
+             </div>
+           </div>
+           <button @click="createRoom" class="w-full bg-stone-900 hover:bg-stone-800 text-white py-4 rounded-xl font-bold mt-2 shadow-lg transition-transform active:scale-95">
+             {{ isSinglePlayerSetup ? t('lobby.startSinglePlayer', 'START SINGLE PLAYER') : t('lobby.startBattle', 'START BATTLE') }}
+           </button>
+         </div>
+       </div>
     </div>
 
   </div>

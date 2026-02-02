@@ -101,12 +101,22 @@ const myId = ref('');
 const hostId = ref('');
 const countdownVal = ref(0);
 
+// Dynamic Room Limit (Synced from server)
+const roomMaxPlayers = ref(8); 
+
 const gameComp = computed(() => currentGame ? defineAsyncComponent(currentGame.component) : null);
-const maxPlayers = computed(() => (currentGame as any)?.maxPlayers || 8);
+const maxPlayers = computed(() => roomMaxPlayers.value); // Use synced value
 const isHost = computed(() => myId.value === hostId.value);
 const amIReady = computed(() => players.value.find(p => p.id === myId.value)?.isReady || false);
 const amIEliminated = computed(() => players.value.find(p => p.id === myId.value)?.isEliminated || false);
-const allReady = computed(() => players.value.length >= 2 && players.value.every(p => p.isReady || p.id === hostId.value));
+const allReady = computed(() => {
+    // Condition 1: Enough players?
+    const minPlayers = roomMaxPlayers.value === 1 ? 1 : 2;
+    if (players.value.length < minPlayers) return false;
+
+    // Condition 2: Everyone ready? (Host is always ready implicitly for this check)
+    return players.value.every(p => p.isReady || p.id === hostId.value);
+});
 
 const finalResult = ref<any>(null);
 const finalPlayers = ref<Player[]>([]); // Snapshot for result modal
@@ -180,6 +190,11 @@ onMounted(() => {
     } else {
         gameOptions.value = { ...defaultOptions };
     }
+    
+    if (state.maxPlayers) {
+        roomMaxPlayers.value = state.maxPlayers;
+    }
+    
     serverStatus.value = state.status;
     
     // Clear Match Ended flag if server resets to lobby or starts new game
@@ -476,10 +491,10 @@ const handleBackToLobby = () => {
         <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
             <div class="max-w-4xl w-full mx-auto pb-8">
               
-              <div class="text-center mb-10 mt-8">
+                <div class="text-center mb-10 mt-8">
                 <h2 class="text-4xl font-black text-stone-800 mb-2 tracking-tight">{{ t('room.waitingRoom', 'WAITING ROOM') }}</h2>
                 <div v-if="serverStatus === 'playing' && !isMatchEnded" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-lg font-bold inline-block mb-2 animate-pulse">
-                    ⚠️ {{ t('room.gameInProgress', 'Game in Progress...') }}
+                    {{ t('room.gameInProgress', 'Game in Progress...') }}
                 </div>
                 <p class="text-stone-500">
                     {{ isHost ? t('room.hostWait', '你是房主，請等待玩家準備') : t('room.playerWait', '請準備並等待房主開始') }}
@@ -561,7 +576,7 @@ const handleBackToLobby = () => {
             >
               {{ 
                   (serverStatus === 'playing' && !isMatchEnded) ? t('room.gameRunning', 'GAME RUNNING') :
-                  players.length < 2 ? t('room.waitingForPlayers', 'WAITING FOR PLAYERS') : 
+                  (players.length < 2 && roomMaxPlayers > 1) ? t('room.waitingForPlayers', 'WAITING FOR PLAYERS') : 
                   (allReady ? t('room.startGame', 'START GAME') : t('room.waitingForReady', 'WAITING FOR READY')) 
               }}
             </button>
@@ -643,7 +658,6 @@ const handleBackToLobby = () => {
         </div>
 
         <div v-else class="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg flex items-center gap-3">
-            <span class="text-xl">👑</span>
             <div>
                 <div class="text-xs font-bold text-yellow-800">Premium Member</div>
                 <div class="text-[10px] text-yellow-600">Thanks for support!</div>
@@ -652,7 +666,6 @@ const handleBackToLobby = () => {
 
         <!-- <div class="w-full aspect-square bg-stone-200 rounded-xl flex items-center justify-center border-2 border-dashed border-stone-300 text-stone-400 font-mono text-sm relative overflow-hidden group cursor-pointer">
           <div class="absolute inset-0 flex flex-col items-center justify-center transition-transform duration-500 group-hover:scale-110">
-            <span class="text-4xl mb-2">⚡</span>
             <span>廣告位招租</span>
           </div>
           <div class="absolute inset-0 bg-stone-900/0 group-hover:bg-stone-900/5 transition-colors"></div>
